@@ -1,0 +1,17 @@
+---
+- when: (ansible_distribution == "CentOS" and
+         ansible_distribution_major_version | version_compare('6', '<=')) or
+        (ansible_distribution == "Ubuntu" and 
+         ansible_distribution_major_version | version_compare('14', '<='))
+  block:
+    - debug: var=ansible_distribution
+    - debug: var=ansible_distribution_major_version 
+    - fail: msg="This role only supported on Ubuntu vivid or CentOS 7"
+
+- when: beat_name not in supported_beats
+  block:
+    - name: Supported beats
+      debug: var=supported_beats
+    - name: Given beat
+      debug: var=beat_name
+    - fail: msg="Not a supported beat" 

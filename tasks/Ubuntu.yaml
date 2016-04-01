@@ -1,0 +1,20 @@
+---
+- name: Add Elastic repo public signing key
+  apt_key: "url={{beat_gpgkey}} state=present"
+  tags: 
+     - install
+
+- name: Add Beats repo
+  shell: echo "deb https://packages.elastic.co/beats/apt stable main" |  sudo tee -a /etc/apt/sources.list.d/beats.list 
+  tags: 
+     - install
+
+- name: Install beat
+  apt: 
+    name: "{{ beat_name }}{% if beat_version is defined %}-{{ beat_version }}{% endif %}"
+    update_cache: yes
+    state: present
+  tags: 
+     - install
+
+

@@ -1,0 +1,6 @@
+---
+# defaults file for ansible-beats
+beat_name: topbeat
+beat_install: true
+
+

@@ -1,0 +1,33 @@
+---
+# tasks file for ansible-beats
+- include: check.yaml
+  tags:
+    - check
+
+- when: beat_install
+  block:
+       - include: Ubuntu.yaml
+         when: ansible_distribution == 'Ubuntu'
+       - include: CentOS.yaml
+         when: ansible_distribution == "CentOS"
+       - name: Enable beat at boot
+         service:
+             name: "{{ beat_name }}"
+             enabled: yes
+         notify: restart beat
+  tags:
+      - install
+       
+- when: beat_config is defined
+  block:
+    - debug: var=beat_config             
+
+    - name: Configure beat
+      template:
+          src: "beatTemplate.yml.j2"
+          dest: "/etc/{{ beat_name }}/{{ beat_name }}.yml"
+      notify: restart beat
+  tags: 
+     - config
+    
+

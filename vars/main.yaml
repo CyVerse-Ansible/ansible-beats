@@ -1,0 +1,8 @@
+---
+# vars file for ansible-beats
+beat_gpgkey: "http://packages.elastic.co/GPG-KEY-elasticsearch"
+supported_beats:
+    - topbeat
+    - filebeat
+    - packetbeat
+    - winlogbeat
