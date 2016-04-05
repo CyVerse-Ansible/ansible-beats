@@ -1,9 +1,5 @@
 ---
 sudo: required
-dist: trusty
-language: python
-python:
-    - "2.7"
 services:
   - docker
 env: 
@@ -24,30 +20,193 @@ env:
     init: /lib/systemd/systemd
     run_opts: "--privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro"
 
-
 before_install:
-    # Ansible doesn't play well with virtualenv
-    - deactivate
-    - 'sudo apt-get update -qq'
-    - 'sudo apt-get install -y -o Dpkg::Options::="--force-confnew" docker-engine'
     # Pull image
     - 'sudo docker pull ${distribution}:${version}'
       # Customize Container
     - 'sudo docker build --rm=true --file=tests/Dockerfile.${distribution}-${version} --tag=${distribution}-${version}:ansible tests'
 
-install:
-  # Install ansible
-  - pip install ansible
-
-  # Check ansible version
-  - ansible --version
-
-  # Create ansible.cfg with correct roles_path
-  - printf '[defaults]\nroles_path=../' >ansible.cfg
-
 script:
-  # Basic role syntax check
-  - ansible-playbook tests/test.yml -i tests/inventory --syntax-check
+    - container_id=$(mktemp)
+      # Run container in detached state
+    - 'sudo docker run --detach --volume="${PWD}":/etc/ansible/roles/role_under_test:ro ${run_opts} ${distribution}-${version}:ansible "${init}" > "${container_id}"'
+    - 'sudo docker exec "$(cat ${container_id})" ansible-galaxy install cyverse.geoip'
+      ## TEST: Ansible syntax check.
+    - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm ansible-playbook /etc/ansible/roles/role_under_test/tests/test.yml --syntax-check'
+
+      ###############################################
+      #### TEST: 1 - Topbeat
+      ####     Execute the role with default values. 
+      ####       This will install topbeat. 
+      ###############################################
+      ## Execute role with default values
+    - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm ansible-playbook /etc/ansible/roles/role_under_test/tests/test.yml'
+    - >
+        sudo docker exec "$(cat ${container_id})" topbeat -version 
+        && (echo 'Topbeat installed: pass' && exit 0) 
+        || (echo 'Topbeat not installed: fail' && exit 1)
+    - >
+        sudo docker exec "$(cat ${container_id})" cat /etc/topbeat/topbeat.yml 
+        | grep -q 'DNE_TEST_ONLY'
+        && (echo 'topbeat.yml should not contain the text "DNE_TEST_ONLY": fail' && exit 1)
+        || (echo 'topbeat.yml does not contain the text "DNE_TEST_ONLY": pass' && exit 0)
+
+      ## Verify role idempotence.
+    - >
+        sudo docker exec "$(cat ${container_id})" ansible-playbook /etc/ansible/roles/role_under_test/tests/test.yml
+        | grep -q 'changed=0.*failed=0'
+        && (echo 'Idempotence test: pass' && exit 0)
+        || (echo 'Idempotence test: fail' && exit 1)
+      
+      ## Execute role with `beat_config` specified
+    - >
+        sudo docker exec "$(cat ${container_id})" ansible-playbook /etc/ansible/roles/role_under_test/tests/test.yml --extra-vars '{"beat_config": {"input": {"period": 10, "procs": [".*"], "stats": {"system": true, "proc": true, "filesystem": true, "cpu_per_core": false}}, "output": {"elasticsearch": {"hosts": ["localhost:9200"]}}, "shipper": {"tags": ["DNE_TEST_ONLY"]}, "logging": {"to_files": true, "files": {"path": "/path/to/log/file.log"}}}}'
+        | grep -q 'changed=2.*failed=0'
+        && (echo 'Correct number of changes detected: pass' && exit 0)
+        || (echo 'Wrong number of changes detected: fail' && exit 1)
+    - >
+        sudo docker exec "$(cat ${container_id})" cat /etc/topbeat/topbeat.yml
+        | grep -q 'DNE_TEST_ONLY'
+        && (echo 'topbeat.yml contains the text "DNE_TEST_ONLY": pass' && exit 0)
+        || (echo 'topbeat.yml should contain the text "DNE_TEST_ONLY", but does not: fail' && exit 1)
+
+      ## TEST: Test role idempotence - set config.
+    - >
+        sudo docker exec "$(cat ${container_id})" ansible-playbook /etc/ansible/roles/role_under_test/tests/test.yml --extra-vars '{"beat_config": {"input": {"period": 10, "procs": [".*"], "stats": {"system": true, "proc": true, "filesystem": true, "cpu_per_core": false}}, "output": {"elasticsearch": {"hosts": ["localhost:9200"]}}, "shipper": {"tags": ["DNE_TEST_ONLY"]}, "logging": {"to_files": true, "files": {"path": "/path/to/log/file.log"}}}}'
+        | grep -q 'changed=0.*failed=0'
+        && (echo 'Idempotence test: pass' && exit 0)
+        || (echo 'Idempotence test: fail' && exit 1)
+
+      # Clean up
+    - 'sudo docker stop "$(cat ${container_id})"'
+
+      ####################################################
+      #### TEST: 2 - Filebeat
+      ####     Execute the role with `beat_name=filebeat`. 
+      ####       This will install filebeat. 
+      ####################################################
+      # Create new container, run in detached state
+    - 'sudo docker run --detach --volume="${PWD}":/etc/ansible/roles/role_under_test:ro ${run_opts} ${distribution}-${version}:ansible "${init}" > "${container_id}"'
+    - 'sudo docker exec "$(cat ${container_id})" ansible-galaxy install cyverse.geoip'
+
+      ## Verify filebeat not installed
+    - >
+        sudo docker exec "$(cat ${container_id})" filebeat -version
+        && (echo 'Filebeat installed: fail' && exit 1)
+        || (echo 'Filebeat not installed: pass' && exit 0)
+      ## Execute role with `beat_name=filebeat`
+    - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm ansible-playbook /etc/ansible/roles/role_under_test/tests/test.yml --extra-vars "beat_name=filebeat"'
+      ## Verify filebeat installed
+    - >
+        sudo docker exec "$(cat ${container_id})" filebeat -version
+        && (echo 'Filebeat installed' && exit 0)
+        || (echo 'Filebeat not installed' && exit 1)
+    - >
+        sudo docker exec "$(cat ${container_id})" cat /etc/filebeat/filebeat.yml 
+        | grep -q 'DNE_TEST_ONLY'
+        && (echo 'filebeat.yml should not contain the text "DNE_TEST_ONLY": fail' && exit 1)
+        || (echo 'filebeat.yml does not contain the text "DNE_TEST_ONLY": pass' && exit 0)
+
+      ## Verify role idempotence - beat_name=filebeat.
+    - >
+        sudo docker exec "$(cat ${container_id})" ansible-playbook /etc/ansible/roles/role_under_test/tests/test.yml --extra-vars "beat_name=filebeat"
+        | grep -q 'changed=0.*failed=0'
+        && (echo 'Idempotence test: pass' && exit 0)
+        || (echo 'Idempotence test: fail' && exit 1)
+
+      ## Execute role with `beat_config` specified
+    - >
+        sudo docker exec "$(cat ${container_id})" ansible-playbook /etc/ansible/roles/role_under_test/tests/test.yml --extra-vars '{"beat_name": "filebeat", "beat_config": {"filebeat": {"prospectors": [{"paths": ["/var/log/*.log"], "input_type": "log"}]}, "output": {"elasticsearch": {"hosts": ["localhost:9200"]}}, "shipper": {"tags": ["DNE_TEST_ONLY"]}, "logging": {"to_files": true, "files": {"path": "/path/to/log/file.log"}}}}'
+        | grep -q 'changed=2.*failed=0'
+        && (echo 'Correct number of changes detected: pass' && exit 0)
+        || (echo 'Wrong number of changes detected: fail' && exit 1)
+    - >
+        sudo docker exec "$(cat ${container_id})" cat /etc/filebeat/filebeat.yml
+        | grep -q 'DNE_TEST_ONLY'
+        && (echo 'filebeat.yml contains the text "DNE_TEST_ONLY": pass' && exit 0)
+        || (echo 'filebeat.yml should contain the text "DNE_TEST_ONLY", but does not: fail' && exit 1)
+      ## TEST: Test role idempotence - set config.
+    - >
+        sudo docker exec "$(cat ${container_id})" ansible-playbook /etc/ansible/roles/role_under_test/tests/test.yml --extra-vars '{"beat_name": "filebeat", "beat_config": {"filebeat": {"prospectors": [{"paths": ["/var/log/*.log"], "input_type": "log"}]}, "output": {"elasticsearch": {"hosts": ["localhost:9200"]}}, "shipper": {"tags": ["DNE_TEST_ONLY"]}, "logging": {"to_files": true, "files": {"path": "/path/to/log/file.log"}}}}'
+        | grep -q 'changed=0.*failed=0'
+        && (echo 'Idempotence test: pass' && exit 0)
+        || (echo 'Idempotence test: fail' && exit 1)
+
+      # Clean up
+    - 'sudo docker stop "$(cat ${container_id})"'
+
+
+      ####################################################
+      #### TEST: 3 - Packetbeat
+      ####     Execute the role with `beat_name=packetbeat`. 
+      ####       This will install packetbeat. 
+      ####################################################
+      # Create new container, run in detached state
+    - 'sudo docker run --detach --volume="${PWD}":/etc/ansible/roles/role_under_test:ro ${run_opts} ${distribution}-${version}:ansible "${init}" > "${container_id}"'
+    - 'sudo docker exec "$(cat ${container_id})" ansible-galaxy install cyverse.geoip'
+
+      ## Verify filebeat not installed
+    - >
+        sudo docker exec "$(cat ${container_id})" packetbeat -version
+        && (echo 'Packetbeat installed: fail' && exit 1)
+        || (echo 'Packetbeat not installed: pass' && exit 0)
+      ## Execute role with `beat_name=packetbeat`
+    - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm ansible-playbook /etc/ansible/roles/role_under_test/tests/test.yml --extra-vars "beat_name=packetbeat"'
+      ## Verify packetbeat installed
+    - >
+        sudo docker exec "$(cat ${container_id})" packetbeat -version
+        && (echo 'Packetbeat installed' && exit 0)
+        || (echo 'Packetbeat not installed' && exit 1)
+    - >
+        sudo docker exec "$(cat ${container_id})" cat /etc/packetbeat/packetbeat.yml 
+        | grep -q 'DNE_TEST_ONLY'
+        && (echo 'packetbeat.yml should not contain the text "DNE_TEST_ONLY": fail' && exit 1)
+        || (echo 'packetbeat.yml does not contain the text "DNE_TEST_ONLY": pass' && exit 0)
+
+      ## Verify role idempotence - beat_name=packetbeat.
+    - >
+        sudo docker exec "$(cat ${container_id})" ansible-playbook /etc/ansible/roles/role_under_test/tests/test.yml --extra-vars "beat_name=packetbeat"
+        | grep -q 'changed=0.*failed=0'
+        && (echo 'Idempotence test: pass' && exit 0)
+        || (echo 'Idempotence test: fail' && exit 1)
+
+      ## Execute role with `beat_config` specified
+    - >
+        sudo docker exec "$(cat ${container_id})" ansible-playbook /etc/ansible/roles/role_under_test/tests/test.yml --extra-vars '{"beat_name": "packetbeat", "beat_config": {"interfaces": {"device": "any"}, "protocols": {"dns": {"ports": [35], "include_authorities": true, "include_additionals": true}, "http": {"ports": [80,8080,8000,5000,8002]}, "memcache": {"ports": [11211]}, "mysql": {"ports": [3306]}, "pgsql": {"ports": [5432]}, "redis": {"ports": [6379]}, "thrift": {"ports": [9090]}, "mongodb": {"ports": [27017]} }, "output": {"elasticsearch": {"hosts": ["localhost:9200"]}}, "shipper": {"tags": ["DNE_TEST_ONLY"]}, "logging": {"to_files": true, "files": {"path": "/path/to/log/file.log"}}}}'
+        | grep -q 'changed=2.*failed=0'
+        && (echo 'Correct number of changes detected: pass' && exit 0)
+        || (echo 'Wrong number of changes detected: fail' && exit 1)
+    - >
+        sudo docker exec "$(cat ${container_id})" cat /etc/packetbeat/packetbeat.yml
+        | grep -q 'DNE_TEST_ONLY'
+        && (echo 'packetbeat.yml contains the text "DNE_TEST_ONLY": pass' && exit 0)
+        || (echo 'packetbeat.yml should contain the text "DNE_TEST_ONLY", but does not: fail' && exit 1)
+      ## TEST: Test role idempotence - set config.
+    - >
+        sudo docker exec "$(cat ${container_id})" ansible-playbook /etc/ansible/roles/role_under_test/tests/test.yml --extra-vars '{"beat_name": "packetbeat", "beat_config": {"interfaces": {"device": "any"}, "protocols": {"dns": {"ports": [35], "include_authorities": true, "include_additionals": true}, "http": {"ports": [80,8080,8000,5000,8002]}, "memcache": {"ports": [11211]}, "mysql": {"ports": [3306]}, "pgsql": {"ports": [5432]}, "redis": {"ports": [6379]}, "thrift": {"ports": [9090]}, "mongodb": {"ports": [27017]} }, "output": {"elasticsearch": {"hosts": ["localhost:9200"]}}, "shipper": {"tags": ["DNE_TEST_ONLY"]}, "logging": {"to_files": true, "files": {"path": "/path/to/log/file.log"}}}}'
+        | grep -q 'changed=0.*failed=0'
+        && (echo 'Idempotence test: pass' && exit 0)
+        || (echo 'Idempotence test: fail' && exit 1)
+
+      #######################################################################
+      #### TEST: 3.1 - Packetbeat with geoip
+      ####     Execute the role with `beat_name=packetbeat,beats_geoip`. 
+      ####       This will install allow the `cyverse.geoip` role to execute. 
+      #######################################################################
+    - > 
+        sudo docker exec "$(cat ${container_id})" ls /usr/share/GeoIP &>/dev/null
+        && (echo 'This directory should not yet exist: fail' && exit 1)
+        || (echo 'This directory does not yet exist: pass' && exit 0)
+    - >
+        sudo docker exec "$(cat ${container_id})" ansible-playbook /etc/ansible/roles/role_under_test/tests/test.yml --extra-vars "beat_name=packetbeat beats_geoip=true"
+    - > 
+        sudo docker exec "$(cat ${container_id})" ls /usr/share/GeoIP/GeoLiteCity.dat
+        && (echo '/usr/share/GeoIP/GeoLiteCity.dat extracted: pass' && exit 0)
+        || (echo '/usr/share/GeoIP/GeoLiteCity.dat not extracted: fail' && exit 1)
+
+      # Clean up
+    - 'sudo docker stop "$(cat ${container_id})"'
 
 notifications:
-  webhooks: https://galaxy.ansible.com/api/v1/notifications/
+      webhooks: https://galaxy.ansible.com/api/v1/notifications/
+

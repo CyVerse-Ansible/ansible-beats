@@ -1,6 +1,6 @@
 ---
 # handlers file for ansible-beats
-- name: restart filebeat
+- name: restart beat
   service:
-      name: filebeat
+      name: "{{ beat_name }}"
       state: restarted

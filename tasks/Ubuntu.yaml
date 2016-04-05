@@ -4,8 +4,11 @@
   tags: 
      - install
 
+- stat: path=/etc/apt/sources.list.d/beats.list
+  register: repo_st
 - name: Add Beats repo
-  shell: echo "deb https://packages.elastic.co/beats/apt stable main" |  sudo tee -a /etc/apt/sources.list.d/beats.list 
+  when: repo_st.stat.exists is defined and not repo_st.stat.exists
+  shell: echo "deb https://packages.elastic.co/beats/apt stable main" |  tee -a /etc/apt/sources.list.d/beats.list 
   tags: 
      - install
 
