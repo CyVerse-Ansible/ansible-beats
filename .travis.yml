@@ -208,5 +208,6 @@ script:
     - 'sudo docker stop "$(cat ${container_id})"'
 
 notifications:
-      webhooks: https://galaxy.ansible.com/api/v1/notifications/
-
+  webhooks: https://galaxy.ansible.com/api/v1/notifications/
+  slack:
+    secure: x1vaxcEiiA/5Dv9r9zjvtMOES/MCI1qVIp7wsIH5xLNE+WMe38dqoJ0st5QGsmsAgMYu+U8HsWgy9p99lNxzMQBEcnv2uoHmFAUjFN4YEvRXf+E3liBE4kw9S2LPi866LjhKYrlH00IASe+wnhsVMnd64PCMd5B/LTytissr0TW7FcvTmmpcJfvNn4V9Mte3uZXtJ/GQB8hak0xyiuIMw8ODMXvoyHH0GpTNgrE9MOnXlynlK03D292bJArg7crAY+tDjjkGwa/HhGYlvkqfki85v3VAJllAyWPo1r959i4WQJ7E2Mvp9+KyciDmnLjhHrDa1aTW9Ah+gB542HFqyniwFur+H7E/eR+Sb2rg/v7Z5XGJWhigxcd3GPrqpjbkmRbZP0aAdV3eUNOMoBBfcNL0oz4n8rwvrbvcujuMFZzATd176pH7NLtSW5JuTFdPejRqpkUTOf6U6xmOg5sBVmbwuwc6QnT1mvvCrhI2E1ZsVs+PGz+EF1GYfUhMYKAHp65qRGlTsJHtQjDQpll/T94qm7I8bsrPKMs6BfeErY0pB2dM4+um3MliIorpBq/1aIyYdRz2pfXa626hpmNSGBEGatqCGTPbDvKGtm1mSbIHruZINxxSFtS6RJ7Vy5MTGS7iHTUfFtkmyJJBvpMtN2d3rBWlarVbddCM4NvRk+w=
