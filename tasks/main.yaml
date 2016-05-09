@@ -14,6 +14,8 @@
          service:
              name: "{{ beat_name }}"
              enabled: yes
+         tags:
+            - enable
          notify: restart beat
   tags:
       - install
@@ -25,7 +27,7 @@
     - name: Configure beat
       template:
           src: "beatTemplate.yml.j2"
-          dest: "/etc/{{ beat_name }}/{{ beat_name }}.yml"
+          dest: "/etc/{{ beat_name }}/{{ beat_config_file }}"
       notify: restart beat
   tags: 
      - config

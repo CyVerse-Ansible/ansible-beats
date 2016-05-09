@@ -2,5 +2,6 @@
 # defaults file for ansible-beats
 beat_name: topbeat
 beat_install: true
+beat_config_file: "{{ beat_name }}.yml"
 
 

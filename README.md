@@ -15,13 +15,14 @@ Requires sudo.
 Role Variables
 --------------
 
-|   Variable   | required | default    | choices | comments                                               |
-|--------------|----------|------------|---------|--------------------------------------------------------|
-| beat_name    |  no      | "topbeat"  |         | The name of the beat to install. The list of `supported_beats` is defined in the role vars. |
-| beat_install |  no      | true       |         | A flag used to control whether the role should perform installation steps. |
-| beat_version |  no      |            |         | If defined, will install the specified version. |
-| beat_config  |  no      |            |         | If defined, is used to populate the beat config file. If undefined, the config file is unchanged. |
-| beats_geoip  |  no      | false      |         | When true, will install the GeoLite City database. See [cyverse.geoip](https://galaxy.ansible.com/cyverse/geoip/) for more info.|
+|   Variable       | required | default           | choices | comments                                               |
+|------------------|----------|-----------       -|---------|--------------------------------------------------------|
+| beat_name        |  no      | "topbeat"         |         | The name of the beat to install. The list of `supported_beats` is defined in the role vars. |
+| beat_install     |  no      | true              |         | A flag used to control whether the role should perform installation steps. |
+| beat_version     |  no      |                   |         | If defined, will install the specified version. |
+| beat_config      |  no      |                   |         | If defined, is used to populate the beat config file. If undefined, the config file is unchanged. |
+| beat_config_file |  no      | {{beat_name}}.yml |         | If defined, sets the name for the config file. |
+| beats_geoip      |  no      | false             |         | When true, will install the GeoLite City database. See [cyverse.geoip](https://galaxy.ansible.com/cyverse/geoip/) for more info.|
 
 
 Dependencies
