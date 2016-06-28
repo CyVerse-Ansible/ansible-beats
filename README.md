@@ -1,6 +1,6 @@
 ansible-beats
 =============
-[![Build Status](https://travis-ci.org/cyverse/ansible-beats.svg?branch=master)](https://travis-ci.org/cyverse/ansible-beats)
+[![Build Status](https://travis-ci.org/CyVerse-Ansible/ansible-beats.svg?branch=master)](https://travis-ci.org/CyVerse-Ansible/ansible-beats)
 
 Installs and configures a specified Beat instance.
 
