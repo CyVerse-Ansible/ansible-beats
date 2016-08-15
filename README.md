@@ -16,7 +16,7 @@ Role Variables
 --------------
 
 |   Variable       | required | default           | choices | comments                                               |
-|------------------|----------|-----------       -|---------|--------------------------------------------------------|
+|------------------|----------|-------------------|---------|--------------------------------------------------------|
 | beat_name        |  no      | "topbeat"         |         | The name of the beat to install. The list of `supported_beats` is defined in the role vars. |
 | beat_install     |  no      | true              |         | A flag used to control whether the role should perform installation steps. |
 | beat_version     |  no      |                   |         | If defined, will install the specified version. |
