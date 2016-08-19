@@ -8,10 +8,6 @@ env:
     init: /usr/lib/systemd/systemd
     run_opts: "--privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro"
   - distribution: ubuntu
-    version: 14.04
-    init: /sbin/init
-    run_opts: ""
-  - distribution: ubuntu
     version: 15.04
     init: /lib/systemd/systemd
     run_opts: "--privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro"
@@ -22,14 +18,11 @@ env:
 
 before_install:
     # Pull image
-    - 'sudo docker pull ${distribution}:${version}'
-      # Customize Container
-    - 'sudo docker build --rm=true --file=tests/Dockerfile.${distribution}-${version} --tag=${distribution}-${version}:ansible tests'
-
+    - 'sudo docker pull cyverse/ansible-test:2.1.1-${distribution}-${version}'
 script:
     - container_id=$(mktemp)
       # Run container in detached state
-    - 'sudo docker run --detach --volume="${PWD}":/etc/ansible/roles/role_under_test:ro ${run_opts} ${distribution}-${version}:ansible "${init}" > "${container_id}"'
+    - 'sudo docker run --detach --volume="${PWD}":/etc/ansible/roles/role_under_test:ro ${run_opts} cyverse/ansible-test:2.1.1-${distribution}-${version} "${init}" > "${container_id}"'
     - 'sudo docker exec "$(cat ${container_id})" ansible-galaxy install cyverse.geoip'
       ## TEST: Ansible syntax check.
     - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm ansible-playbook /etc/ansible/roles/role_under_test/tests/test.yml --syntax-check'
@@ -86,7 +79,7 @@ script:
       ####       This will install filebeat. 
       ####################################################
       # Create new container, run in detached state
-    - 'sudo docker run --detach --volume="${PWD}":/etc/ansible/roles/role_under_test:ro ${run_opts} ${distribution}-${version}:ansible "${init}" > "${container_id}"'
+    - 'sudo docker run --detach --volume="${PWD}":/etc/ansible/roles/role_under_test:ro ${run_opts} cyverse/ansible-test:2.1.1-${distribution}-${version} "${init}" > "${container_id}"'
     - 'sudo docker exec "$(cat ${container_id})" ansible-galaxy install cyverse.geoip'
 
       ## Verify filebeat not installed
@@ -142,7 +135,7 @@ script:
       ####       This will install packetbeat. 
       ####################################################
       # Create new container, run in detached state
-    - 'sudo docker run --detach --volume="${PWD}":/etc/ansible/roles/role_under_test:ro ${run_opts} ${distribution}-${version}:ansible "${init}" > "${container_id}"'
+    - 'sudo docker run --detach --volume="${PWD}":/etc/ansible/roles/role_under_test:ro ${run_opts} cyverse/ansible-test:2.1.1-${distribution}-${version} "${init}" > "${container_id}"'
     - 'sudo docker exec "$(cat ${container_id})" ansible-galaxy install cyverse.geoip'
 
       ## Verify filebeat not installed
