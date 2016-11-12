@@ -22,5 +22,5 @@ galaxy_info:
 
 dependencies: 
     - role: cyverse.geoip
-      when: beats_geoip | default(false)
+      when: beat.geoip 
 

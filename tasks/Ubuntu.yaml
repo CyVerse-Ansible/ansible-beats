@@ -1,20 +1,21 @@
 ---
 - name: Add Elastic repo public signing key
-  apt_key: "url={{beat_gpgkey}} state=present"
+  apt_key: url=https://artifacts.elastic.co/GPG-KEY-elasticsearch state=present
   tags: 
      - install
 
-- stat: path=/etc/apt/sources.list.d/beats.list
+       # TODO: Update this
+- stat: path=/etc/apt/sources.list.d/elastic-5.x.list
   register: repo_st
 - name: Add Beats repo
   when: repo_st.stat.exists is defined and not repo_st.stat.exists
-  shell: echo "deb https://packages.elastic.co/beats/apt stable main" |  tee -a /etc/apt/sources.list.d/beats.list 
+  shell: echo "deb https://artifacts.elastic.co/packages/5.x/apt stable main" |  tee -a /etc/apt/sources.list.d/elastic-5.x.list
   tags: 
      - install
 
 - name: Install beat
   apt: 
-    name: "{{ beat_name }}{% if beat_version is defined %}={{ beat_version }}{% endif %}"
+    name: "{{ beat.name }}{% if beat.version is defined %}={{ beat.version }}{% endif %}"
     update_cache: yes
     state: present
   tags: 

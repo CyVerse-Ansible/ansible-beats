@@ -4,30 +4,42 @@
   tags:
     - check
 
-- when: beat_install
+- when: beat.service_state is defined
   block:
-       - include: Ubuntu.yaml
-         when: ansible_distribution == 'Ubuntu'
-       - include: CentOS.yaml
-         when: ansible_distribution == "CentOS"
-       - name: Enable beat at boot
-         service:
-             name: "{{ beat_name }}"
-             enabled: yes
-         tags:
-            - enable
-         notify: restart beat
+    - name: "Update service state: {{beat.service_state}}"
+      service:
+        name: "{{ beat.name }}"
+        state: "{{ beat.service_state }}"
   tags:
-      - install
-       
-- when: beat_config is defined
+    - service
+
+
+- when: beat.service_enabled is defined
   block:
-    - debug: var=beat_config             
+    - name: Enable beat at boot
+      service:
+        name: "{{ beat.name }}"
+        enabled: "{{ beat.service_enabled }}"
+  tags:
+    - service
+
+- when: beat.install
+  block:
+    - include: Ubuntu.yaml
+      when: ansible_distribution == 'Ubuntu'
+    - include: CentOS.yaml
+      when: ansible_distribution == "CentOS"
+  tags:
+    - install
+       
+- when: beat.config is defined
+  block:
+    - debug: var=beat.config             
 
     - name: Configure beat
       template:
           src: "beatTemplate.yml.j2"
-          dest: "/etc/{{ beat_name }}/{{ beat_config_file }}"
+          dest: "/etc/{{ beat.name }}/{{ beat.config_file }}"
       notify: restart beat
   tags: 
      - config
