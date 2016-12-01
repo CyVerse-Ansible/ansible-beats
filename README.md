@@ -20,8 +20,8 @@ Role Variables
 | beat_name        |  no      | "metricbeat"      | The name of the beat to install. The list of `supported_beats` is defined in the role vars. |
 | beat_install     |  no      | true              | A flag used to control whether the role should perform installation steps. |
 | beat_config      |  no      |                   | When defined, the child yaml is used to populate the beat's config file. If undefined, the config file is unchanged.`*` |
-| beat_scv_state   |  no      |                   | When defined, corresponds to the desired `state` parameter of Ansible's [Service Module][ansible-service]. |
-| beat_scv_enabled |  no      |                   | When defined, corresponds to the desired `enabled` parameter of Ansible's [Service Module][ansible-service].|
+| beat_svc_state   |  no      |                   | When defined, corresponds to the desired `state` parameter of Ansible's [Service Module][ansible-service]. |
+| beat_svc_enabled |  no      |                   | When defined, corresponds to the desired `enabled` parameter of Ansible's [Service Module][ansible-service].|
 | beat_cfg_file    |  no      | {{beat_name}}.yml | If defined, sets the name for the config file. |
 | beat_version     |  no      |                   | If defined, will install the specified version. |
 
