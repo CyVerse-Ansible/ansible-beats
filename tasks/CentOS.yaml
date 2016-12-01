@@ -1,6 +1,6 @@
 ---
 - name: Add Elastic repo public signing key
-  shell: rpm --import https://artifacts.elastic.co/GPG-KEY-elasticsearch
+  shell: rpm --import https://packages.elastic.co/GPG-KEY-elasticsearch
   changed_when: false
   tags: 
      - install
@@ -15,7 +15,7 @@
 
 - name: Install Beat
   yum:
-    name: "{{ beat.name }}{% if beat.version is defined %}-{{beat.version}}{% endif %}"
+    name: "{{ beat_name }}{% if beat_version is defined %}-{{beat_version}}{% endif %}"
     update_cache: yes
     state: present
   tags: 

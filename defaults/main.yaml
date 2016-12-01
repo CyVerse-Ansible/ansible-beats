@@ -1,17 +1,13 @@
 ---
 # defaults file for ansible-beats
-beat_name: topbeat
-beat:
-  name: "{{beat_name}}"
-  install: true
-  geoip: false
-  config_file: "{{ beat_name }}.yml"
-  #version: 5.0.0
-  #service_state: true
-  #service_enabled: true
+beat_name: metricbeat
+beat_install: true
+beat_geoip: false
+beat_cfg_file: "{{ beat_name }}.yml"
+  #beat_version: 5.0.0
+  #beat_svc_state: started
+  #beat_svc_enabled: true
 
 
-## TODO: Make scheme for updating path settings for beat `INSTANCE_NAME`s. This will be a way
-#        to encourage multiple beats to be setup/configured per host.
 
 

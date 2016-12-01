@@ -4,26 +4,26 @@
   tags:
     - check
 
-- when: beat.service_state is defined
+- when: beat_svc_state is defined
   block:
-    - name: "Update service state: {{beat.service_state}}"
+    - name: "Update service state: {{beat_svc_state}}"
       service:
-        name: "{{ beat.name }}"
-        state: "{{ beat.service_state }}"
+        name: "{{ beat_name }}"
+        state: "{{ beat_svc_state }}"
   tags:
     - service
 
 
-- when: beat.service_enabled is defined
+- when: beat_svc_enabled is defined
   block:
     - name: Enable beat at boot
       service:
-        name: "{{ beat.name }}"
-        enabled: "{{ beat.service_enabled }}"
+        name: "{{ beat_name }}"
+        enabled: "{{ beat_svc_enabled }}"
   tags:
     - service
 
-- when: beat.install
+- when: beat_install
   block:
     - include: Ubuntu.yaml
       when: ansible_distribution == 'Ubuntu'
@@ -32,14 +32,14 @@
   tags:
     - install
        
-- when: beat.config is defined
+- when: beat_config is defined
   block:
-    - debug: var=beat.config             
+    - debug: var=beat_config             
 
     - name: Configure beat
       template:
           src: "beatTemplate.yml.j2"
-          dest: "/etc/{{ beat.name }}/{{ beat.config_file }}"
+          dest: "/etc/{{ beat_name }}/{{ beat_cfg_file }}"
       notify: restart beat
   tags: 
      - config

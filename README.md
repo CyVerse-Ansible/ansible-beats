@@ -8,23 +8,25 @@ Installs and configures a specified Beat instance.
 
 Requirements
 ------------
-
 * Ansible 2.x
 * Requires sudo.
-* Suggest setting `hash_behaviour = replace` in your `ansible.cfg` file, or setting the `ANSIBLE_HASH_BEHAVIOUR=merge` env variable.
 
 Role Variables
 --------------
 
-|   Variable       | required | default           | choices | comments                                               |
-|------------------|----------|-------------------|---------|--------------------------------------------------------|
-| beat.name        |  no      | "topbeat"         |         | The name of the beat to install. The list of `supported_beats` is defined in the role vars. |
-| beat.install     |  no      | true              |         | A flag used to control whether the role should perform installation steps. |
-| beat.version     |  no      |                   |         | If defined, will install the specified version. |
-| beat.config      |  no      |                   |         | If defined, is used to populate the beat config file. If undefined, the config file is unchanged. |
-| beat.config_file |  no      | {{beat_name}}.yml |         | If defined, sets the name for the config file. |
-| beat.geoip       |  no      | false             |         | When true, will install the GeoLite City database. See [cyverse.geoip](https://galaxy.ansible.com/cyverse/geoip/) for more info.|
+|   Variable       | required | default           | comments                                               |
+|------------------|----------|-------------------|--------------------------------------------------------|
+| beat_name        |  no      | "metricbeat"      | The name of the beat to install. The list of `supported_beats` is defined in the role vars. |
+| beat_install     |  no      | true              | A flag used to control whether the role should perform installation steps. |
+| beat_config      |  no      |                   | When defined, the child yaml is used to populate the beat's config file. If undefined, the config file is unchanged.`*` |
+| beat_geoip       |  no      | false             | When true, will install the GeoLite City database. See [cyverse.geoip](https://galaxy.ansible.com/cyverse/geoip/) for more info.|
+| beat_scv_state   |  no      |                   | When defined, corresponds to the desired `state` parameter of Ansible's [Service Module][ansible-service]. |
+| beat_scv_enabled |  no      |                   | When defined, corresponds to the desired `enabled` parameter of Ansible's [Service Module][ansible-service].|
+| beat_cfg_file    |  no      | {{beat_name}}.yml | If defined, sets the name for the config file. |
+| beat_version     |  no      |                   | If defined, will install the specified version. |
 
+
+`*`: You are able to use [config file namespacing][namespacing] when defining the `beat_config` variable, but it is not suggested. 
 
 Dependencies
 ------------
@@ -34,113 +36,59 @@ Dependencies
 Example Playbooks
 -----------------
 
-To install `topbeat` with default configuration:
+To install `metricbeat` with default configuration:
 
-    - hosts: systems
+    - hosts: myhosts
       vars:
       roles:
          - role: cyverse.beats
 
-To install `topbeat` with specified configuration:
+To install `metricbeat` with specified configuration:
 
-    - hosts: systems
+    - hosts: myhosts
       vars:
         beat_config:
-          input:
-            period: 10
-            procs: 
-               - ".*"
-            stats:
-              cpu_per_core: false
-              filesystem: true
-              proc: true
-              system: true
-          output:
-            elasticsearch: 
-              hosts:
-                - "localhost:9200" 
-          logging:
-            to_files: true 
-            files: 
-              - "/path/to/log/file.log"
-          shipper:
-            tags: 
-              - "some_tag"
+           metricbeat.modules:
+           - module: system
+             metricsets:
+               - cpu
+               - filesystem
+               - memory
+               - network
+               - process
+             enabled: true
+             period: 10s
+             processes: ['.*']
+             cpu_ticks: false
+           - module: apache
+             metricsets: ["status"]
+             enabled: true
+             period: 1s
+             hosts: ["http://127.0.0.1"]
+           output.elasticsearch:
+             hosts: ["127.0.0.1:9200"]
       roles:
          - role: cyverse.beats
 
 To install `filebeat` with specified configuration:
 
-    - hosts: systems
+    - hosts: myhosts
       vars:
         beat_name: filebeat
         beat_config:
-          filebeat:
-            prospectors:
-              - paths:
-                   - "/var/log/de/*.log"
-                document_type: "de-log"
-          output:
-           logstash:
-             hosts:
-               - "{{filebeat_logstash_host}}"
-             tls:
-               certificate_authorities: []
-             index: "{{filebeat_index_pattern}}"
-          shipper:
-            name: "{{ansible_hostname}}"
-            tags:
-                - "{{ inventory_file.split('/')[-1].split('.')[0] }}"
-          logging:
-            to_files: true
-            level: info
-            files:
-              path: /var/log/filebeat
-              name: filebeat
-              rotateeverybytes: 10485760 
+             ...
       roles:
          - role: cyverse.beats
 
-To install `packetbeat` with GeoIP database installed and configured:
-
-    - hosts: systems
-      vars:
-        beat_name: packetbeat
-        beats_geoip: true
-        beat_config:
-          interfaces:
-            device: any
-          protocols:
-            http:
-              ports: 
-                  - 80
-            pgsql:  
-              ports: 
-                  - 5432
-          output:
-            elasticsearch:
-              hosts:
-                  - "localhost:9200"
-              save_topology: true
-          shipper:
-            tags: 
-              - some_tag
-            ignore_outgoing: true
-            geoip:
-              paths:
-                - "/usr/share/GeoIP/GeoLiteCity.dat"
-          logging:
-            to_files: false
-            files:
-              path: /var/log/packetbeat
-      roles:
-         - role: cyverse.beats
 License
 -------
 
-BSD
+See LICENSE.txt
 
 Author Information
 ------------------
 
-Jonathan Strootman - jstroot@cyverse.org
+https://cyverse.org
+
+[ansible-service]: https://docs.ansible.com/ansible/service_module.html
+[namespacing]: https://www.elastic.co/guide/en/beats/libbeat/5.0/config-file-format-namespacing.html
