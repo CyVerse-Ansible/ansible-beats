@@ -3,7 +3,7 @@
 beat_name: metricbeat
 beat_install: true
 beat_cfg_file: "{{ beat_name }}.yml"
-  #beat_version: 5.0.0
+beat_version: 5.0.2
   #beat_svc_state: started
   #beat_svc_enabled: true
 
