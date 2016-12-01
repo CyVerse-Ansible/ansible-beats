@@ -9,7 +9,6 @@ Installs and configures a specified Beat instance.
 Requirements
 ------------
 * Ansible 2.x
-* Requires sudo.
 
 Role Variables
 --------------
@@ -19,7 +18,6 @@ Role Variables
 | beat_name        |  no      | "metricbeat"      | The name of the beat to install. The list of `supported_beats` is defined in the role vars. |
 | beat_install     |  no      | true              | A flag used to control whether the role should perform installation steps. |
 | beat_config      |  no      |                   | When defined, the child yaml is used to populate the beat's config file. If undefined, the config file is unchanged.`*` |
-| beat_geoip       |  no      | false             | When true, will install the GeoLite City database. See [cyverse.geoip](https://galaxy.ansible.com/cyverse/geoip/) for more info.|
 | beat_scv_state   |  no      |                   | When defined, corresponds to the desired `state` parameter of Ansible's [Service Module][ansible-service]. |
 | beat_scv_enabled |  no      |                   | When defined, corresponds to the desired `enabled` parameter of Ansible's [Service Module][ansible-service].|
 | beat_cfg_file    |  no      | {{beat_name}}.yml | If defined, sets the name for the config file. |
@@ -31,7 +29,7 @@ Role Variables
 Dependencies
 ------------
 
-* [cyverse.geoip](https://galaxy.ansible.com/cyverse/geoip/)
+None
 
 Example Playbooks
 -----------------

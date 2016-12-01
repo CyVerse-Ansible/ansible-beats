@@ -33,7 +33,6 @@ script:
       #### TEST: 0 - Ansible Syntax Check
       ###############################################
     - 'sudo docker run -it --detach --volume="${PWD}":/etc/ansible/roles/role_under_test:ro ${run_opts} cyverse/ansible-test:latest-${distribution}-${version} "${init}" > "${container_id}"'
-    - 'sudo docker exec "$(cat ${container_id})" ansible-galaxy install cyverse.geoip'
       ## TEST: Ansible syntax check.
     - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm ansible-playbook /etc/ansible/roles/role_under_test/tests/test.yml --syntax-check'
 
@@ -88,34 +87,9 @@ script:
     - 'sudo docker stop "$(cat ${container_id})"'
 
       ###############################################
-      #### TEST - GeoIP
-      ###############################################
-    - 'sudo docker run -it --detach --volume="${PWD}":/etc/ansible/roles/role_under_test:ro ${run_opts} cyverse/ansible-test:latest-${distribution}-${version} "${init}" > "${container_id}"'
-    - 'sudo docker exec "$(cat ${container_id})" ansible-galaxy install cyverse.geoip'
-
-    - >
-        sudo docker exec "$(cat ${container_id})" ls /usr/share/GeoIP &>/dev/null
-        && (echo 'This directory should not yet exist: fail' && exit 1)
-        || (echo 'This directory does not yet exist: pass' && exit 0)
-    - >
-        sudo docker exec "$(cat ${container_id})" ansible-playbook /etc/ansible/roles/role_under_test/tests/test.yml --extra-vars "beat_geoip=true beat_install=false"
-        | grep -q 'changed=3.*failed=0'
-        && (echo 'Correct Number of Changes: pass' && exit 0)
-        || (echo 'Incorrect Number of Changes: fail' && exit 1)
-    - >
-        sudo docker exec "$(cat ${container_id})" ls /usr/share/GeoIP/GeoLiteCity.dat
-        && (echo '/usr/share/GeoIP/GeoLiteCity.dat extracted: pass' && exit 0)
-        || (echo '/usr/share/GeoIP/GeoLiteCity.dat not extracted: fail' && exit 1)
-
-      # Clean up
-    - 'sudo docker stop "$(cat ${container_id})"'
-
-
-      ###############################################
       #### TEST - beat_cfg, restart, idempotence
       ###############################################
     - 'sudo docker run -it --detach --volume="${PWD}":/etc/ansible/roles/role_under_test:ro ${run_opts} cyverse/ansible-test:latest-${distribution}-${version} "${init}" > "${container_id}"'
-    - 'sudo docker exec "$(cat ${container_id})" ansible-galaxy install cyverse.geoip'
 
     - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm ansible-playbook /etc/ansible/roles/role_under_test/tests/test.yml --extra-vars "beat_name=metricbeat"'
     - >
@@ -151,7 +125,6 @@ script:
       #### TEST - beat_svc_*
       ###############################################
 #    - 'sudo docker run -it --detach --volume="${PWD}":/etc/ansible/roles/role_under_test:ro ${run_opts} cyverse/ansible-test:latest-${distribution}-${version} "${init}" > "${container_id}"'
-#    - 'sudo docker exec "$(cat ${container_id})" ansible-galaxy install cyverse.geoip'
 #      # TODO: Verify expected service state and enabled values
 #    - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm ansible-playbook /etc/ansible/roles/role_under_test/tests/test.yml --extra-vars "beat_name=metricbeat"'
 #    - 'sudo docker exec --tty "$(cat ${container_id})" env TERM=xterm ansible-playbook /etc/ansible/roles/role_under_test/tests/test.yml --extra-vars "beat_name=metricbeat beat_install=false beat_svc_state=started"'

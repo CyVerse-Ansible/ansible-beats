@@ -22,7 +22,5 @@ galaxy_info:
       - elasticsearch
       - elastic
 
-dependencies: 
-    - role: cyverse.geoip
-      when: beat_geoip 
+dependencies: []
 

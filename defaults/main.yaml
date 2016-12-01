@@ -2,7 +2,6 @@
 # defaults file for ansible-beats
 beat_name: metricbeat
 beat_install: true
-beat_geoip: false
 beat_cfg_file: "{{ beat_name }}.yml"
   #beat_version: 5.0.0
   #beat_svc_state: started
