@@ -2,7 +2,7 @@ ansible-beats
 =============
 [![Build Status](https://travis-ci.org/CyVerse-Ansible/ansible-beats.svg?branch=master)](https://travis-ci.org/CyVerse-Ansible/ansible-beats)
 
-[![Ansible Galaxy](https://img.shields.io/badge/ansible--galaxy-cyverse.beats-blue.svg)](https://galaxy.ansible.com/cyverse/beats/)
+[![Ansible Galaxy](https://img.shields.io/badge/ansible--galaxy-CyVerse-Ansible.beats-blue.svg)](https://galaxy.ansible.com/CyVerse-Ansible/beats/)
 
 Installs and configures a specified Beat instance.
 
