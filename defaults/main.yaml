@@ -6,7 +6,7 @@ beat_cfg_file: "{{ beat_name }}.yml"
 beat_version: 5.0.2
   #beat_svc_state: started
   #beat_svc_enabled: true
-
+apt_cache_valid_time: 3600
 
 
 

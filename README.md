@@ -24,6 +24,7 @@ Role Variables
 | beat_svc_enabled |  no      |                   | When defined, corresponds to the desired `enabled` parameter of Ansible's [Service Module][ansible-service].|
 | beat_cfg_file    |  no      | {{beat_name}}.yml | If defined, sets the name for the config file. |
 | beat_version     |  no      |                   | If defined, will install the specified version. |
+| apt_cache_valid_time |  no      | 3600              | Corresponds to the desired `cache_valid_time` parameter of Ansible's [Apt Module][ansible-apt]. |
 
 
 `*`: You are able to use [config file namespacing][namespacing] when defining the `beat_config` variable, but it is not suggested. 
@@ -91,4 +92,5 @@ Author Information
 https://cyverse.org
 
 [ansible-service]: https://docs.ansible.com/ansible/service_module.html
+[ansible-apt]: https://docs.ansible.com/ansible/apt_module.html
 [namespacing]: https://www.elastic.co/guide/en/beats/libbeat/5.0/config-file-format-namespacing.html

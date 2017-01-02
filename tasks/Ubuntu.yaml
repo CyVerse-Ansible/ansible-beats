@@ -22,6 +22,7 @@
   apt: 
     name: "{{ beat_name }}{% if beat_version is defined %}={{ beat_version }}{% endif %}"
     update_cache: yes
+    cache_valid_time: "{{ apt_cache_valid_time }}"
     state: present
   tags: 
      - install
