@@ -8,10 +8,10 @@
     - debug: var=ansible_distribution_major_version 
     - fail: msg="This role only supported on Ubuntu 12.04 or CentOS 6 and above"
 
-- when: beat_name not in supported_beats
+- when: beat_type not in supported_beats
   block:
     - name: Supported beats
       debug: var=supported_beats
     - name: Given beat
-      debug: var=beat_name
+      debug: var=beat_type
     - fail: msg="Not a supported beat" 

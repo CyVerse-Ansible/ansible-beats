@@ -20,7 +20,7 @@
 
 - name: Install beat
   apt: 
-    name: "{{ beat_name }}{% if beat_version is defined %}={{ beat_version }}{% endif %}"
+    name: "{{ beat_type }}{% if beat_version is defined %}={{ beat_version }}{% endif %}"
     update_cache: yes
     state: present
   tags: 

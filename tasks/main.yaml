@@ -8,7 +8,7 @@
   block:
     - name: "Update service state: {{beat_svc_state}}"
       service:
-        name: "{{ beat_name }}"
+        name: "{{ beat_type }}"
         state: "{{ beat_svc_state }}"
   tags:
     - service
@@ -18,7 +18,7 @@
   block:
     - name: Enable beat at boot
       service:
-        name: "{{ beat_name }}"
+        name: "{{ beat_type }}"
         enabled: "{{ beat_svc_enabled }}"
   tags:
     - service
@@ -31,17 +31,10 @@
       when: ansible_distribution == "CentOS"
   tags:
     - install
-       
-- when: beat_config is defined
-  block:
-    - debug: var=beat_config             
 
-    - name: Configure beat
-      template:
-          src: "beatTemplate.yml.j2"
-          dest: "/etc/{{ beat_name }}/{{ beat_cfg_file }}"
-      notify: restart beat
+- include: beats-config.yml      
   tags: 
      - config
+       
     
 
