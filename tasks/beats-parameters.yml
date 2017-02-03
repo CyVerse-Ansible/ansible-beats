@@ -1,0 +1,21 @@
+---
+
+# Check for mandatory parameters
+
+#- fail: msg="beat_instance_name must be specified and cannot be blank"
+#  when: beat_instance_name is not defined or beat_instance_name == ''
+
+
+- set_fact: instance_init_script={{init_script | dirname }}/{{es_instance_name}}_{{init_script | basename}}
+- set_fact: use_system_d={{(ansible_distribution == 'Debian' and ansible_distribution_version | version_compare('8', '>=')) or (ansible_distribution == 'CentOS' and ansible_distribution_version | version_compare('7', '>=')) or (ansible_distribution == 'Ubuntu' and ansible_distribution_version | version_compare('15', '>=')) }}
+
+- set_fact: instance_sysd_script={{sysd_script | dirname }}/{{beat_type}}_{{beat_instance_name}}.service
+    when: use_system_d
+#For directories we also use the {{inventory_hostname}}-{{ es_instance_name }} - this helps if we have a shared SAN.
+
+#- set_fact: instance_suffix={{inventory_hostname}}-{{ beat_instance_name }}
+- set_fact: instance_suffix={{ beat_instance_name }}
+- set_fact: conf_dir={{ beat_path_conf  }}/{{beat_instance_name}}
+- set_fact: data_dir={{ beat_path_data }}/{{beat_instance_name}}
+- set_fact: log_dir={{ beat_path_logs }}/{{beat_instance_name}}
+

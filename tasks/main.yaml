@@ -4,6 +4,11 @@
   tags:
     - check
 
+- name: check-set-parameters
+  include: beats-parameters.yml
+  tags:
+    - always
+
 - when: beat_svc_state is defined
   block:
     - name: "Update service state: {{beat_svc_state}}"
@@ -23,11 +28,12 @@
   tags:
     - service
 
+# Control installation with `beat_install` var, or `install` tag.
 - when: beat_install
   block:
-    - include: Ubuntu.yaml
+    - include: beats-Ubuntu.yaml
       when: ansible_distribution == 'Ubuntu'
-    - include: CentOS.yaml
+    - include: beats-CentOS.yaml
       when: ansible_distribution == "CentOS"
   tags:
     - install
@@ -36,5 +42,6 @@
   tags: 
      - config
        
+- meta: flush_handlers
     
 
