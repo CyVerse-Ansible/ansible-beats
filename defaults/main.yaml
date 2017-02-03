@@ -2,11 +2,22 @@
 # defaults file for ansible-beats
 beat_type: metricbeat
 beat_install: true
+beat_path_home: "/usr/share/{{beat_type}}"
+beat_path_conf: "/etc/{{beat_type}}"
+beat_path_data: "/var/lib/{{beat_type}}"
+beat_path_logs: "/var/log/{{beat_type}}"
 beat_cfg_file: "{{ beat_type }}.yml"
-beat_version: 5.0.2
+beat_version: 5.2.0
+beat_user: root
+beat_group: root
   #beat_svc_state: started
   #beat_svc_enabled: true
 
+beat_config:
+   name: "{{ beat_instance_name | default(omit) }}"
 
-
-
+# Since ansible 2.2 the following variables need to be defined
+# # to allow the role to be conditionally played with a when condition.
+conf_dir: ''
+data_dir: ''
+log_dir: ''

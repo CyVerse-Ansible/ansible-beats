@@ -1,5 +1,6 @@
 ---
 # vars file for ansible-beats
+sysd_script: "/lib/systemd/system/{{ beat_type }}.service"
 supported_beats:
     - metricbeat
     - filebeat
