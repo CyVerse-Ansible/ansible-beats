@@ -1,0 +1,45 @@
+---
+- name: Verify Default Directory Layout-1
+  hosts: localhost
+  remote_user: root
+  vars:
+     ES_PACKAGE: metricbeat
+  pre_tasks:
+     - when: es_home != '/usr/share/{{ES_PACKAGE}}'
+       fail: 
+         msg: "es_home = {{es_home}}, but should be '/usr/share/{{ES_PACKAGE}}'"
+
+     - when: conf_dir != '/etc/{{ES_PACKAGE}}'
+       fail: 
+         msg: "conf_dir = {{conf_dir}}, but should be '/etc/{{ES_PACKAGE}}'"
+
+     - when: data_dir != '/var/lib/{{ES_PACKAGE}}'
+       fail: 
+         msg: "data_dir = {{data_dir}}, but should be '/var/lib/{{ES_PACKAGE}}'"
+
+     - when: log_dir != '/var/log/{{ES_PACKAGE}}'
+       fail: 
+         msg: "log_dir = {{log_dir}}, but should be '/var/log/{{ES_PACKAGE}}'"
+
+     - when: pid_dir != '/var/run/{{ES_PACKAGE}}'
+       fail: 
+         msg: "pid_dir = {{pid_dir}}, but should be '/var/run/{{ES_PACKAGE}}'"
+
+
+  roles:
+    - role_under_test
+  post_tasks:
+     - when: use_system_d and
+             instance_sysd_script != sysd_script
+       fail: 
+         msg: "instance_sysd_script = {{instance_sysd_script}}, but should be {{sysd_script}} "
+
+     - when: not use_system_d and 
+             instance_init_script != init_script
+       fail: 
+         msg: "instance_init_script = {{instance_init_script}}, but should be {{init_script}} "
+
+     - when: instance_default_file != default_file
+       fail: 
+         msg: "instance_default_file = {{instance_default_file}}, but should be {{default_file}} "
+

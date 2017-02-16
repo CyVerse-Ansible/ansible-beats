@@ -1,0 +1,17 @@
+---
+# defaults file for ansible-beats
+BEAT_TYPE: metricbeat
+beat_user: root
+beat_group: root
+beat_doc_url: "https://www.elastic.co/products/beats"
+beat_description: "Beats send stuff to Elasticsearch"
+
+
+# If Ansible's hash behavior is set to merge, your config will pick up 
+# these defaults.
+beat_cfg:
+   name: "{{ beat_instance_name | default(omit) }}"
+   path.home: "{{es_home}}"
+   path.config: "{{conf_dir}}"
+   path.data: "{{data_dir}}"
+   path.logs: "{{log_dir}}"
