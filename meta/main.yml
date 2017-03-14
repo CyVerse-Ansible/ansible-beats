@@ -26,6 +26,7 @@ galaxy_info:
 dependencies: 
   - role: CyVerse-Ansible.elastic-stack-install
     version: v5.2.0
+    es_instance_name: "{{ beat_instance_name | default(omit) }}"
     ES_PACKAGE: "{{BEAT_TYPE}}"
     ES_CONFIG_CONTENTS: "{{beat_cfg}}"
     SYSD_FILE_TEMPLATE_SRC: "{{role_path}}/templates/beats/systemd/beat.service.j2"
