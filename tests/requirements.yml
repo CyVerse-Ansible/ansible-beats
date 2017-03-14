@@ -1,3 +1,4 @@
 ---
 - src: CyVerse-Ansible.elastic-stack-install
   name: CyVerse-Ansible.elastic-stack-install
+  version: v5.2.0
